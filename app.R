@@ -9,6 +9,8 @@ library(shinythemes)
 library(utils)
 library(dplyr)
 library(ggplot2)
+library(car)
+library(plotly)
 
 round.up <- function(x, decimals = 1){
   round(x + (5 * 10 ^ (-decimals - 1)), digits = decimals)
@@ -19,7 +21,7 @@ round.down <- function(x, decimals = 1){
 }
 
 
-PCAtestdata <- read.delim("~/Desktop/PCAtestdata.txt", stringsAsFactors = F)
+PCAtestdata <- read.delim("PCAtestdata.txt", stringsAsFactors = F)
 PCAlist <-c("PCA1", "PCA2", "PCA3", "PCA4", "PCA5", "PCA6", "PCA7", "PCA8", "PCA9", "PCA10")
 ethnicspecific <- c("African", "East Asian", "Southeast Asian", "South Asian", "European", "Hispanic", "Melanesian", "East Polynesian",  "West Polynesian", "Niuean", "Pukapukan", "Polynesian", "Unspecified")
 
@@ -33,31 +35,43 @@ ui = fluidPage(
       column(width = 4,
       selectInput('xcol', 'X Variable', PCAlist),
       selectInput('ycol', 'Y Variable', PCAlist, selected=PCAlist[2]),
-      selectInput('ethnicclass', 'Choose ethnic groups to include', choices = ethnicspecific, multiple = TRUE )
+      selectInput('ethnicclass', 'Choose ethnic groups to include', choices = ethnicspecific, multiple = TRUE ),
       #numericInput('clusters', 'Cluster count', 3, min = 1, max = 9)
+       
+      fluidRow(
+        verbatimTextOutput("plot2_hover_info")
+      )
+      
         ), 
    
+    #   column(width = 8,
+    #   plotOutput('plot1', width = "80%", height = "900px",
+    #             click = clickOpts(id = "plot1_click"),
+    #             brush = brushOpts(id = "plot1_brush"),
+    #             hover = hoverOpts(id = "plot1_hover")
+    #              )
+    #   #tableOutput("reactivetable")
+    #   #downloadButton('downloadData', 'Download')
+    #     )
+    #   
+    #   ),
+    # fluidRow(
+    #   column(width = 6,
+    #          h4("Points near click"),
+    #          verbatimTextOutput("click_info")
+    #   ),
+    #   column(width = 6,
+    #          h4("Brushed points"),
+    #          verbatimTextOutput("brush_info")
+    #   )
+    # ),
+    # 
+    #fluidRow(
       column(width = 8,
-      plotOutput('plot1', width = "80%", height = "900px",
-                click = clickOpts(id = "plot1_click"),
-                brush = brushOpts(id = "plot1_brush"),
-                hover = hoverOpts(id = "plot1_hover")
-                 )
-      #tableOutput("reactivetable")
-      #downloadButton('downloadData', 'Download')
-        )
-      ),
-    
-    fluidRow(
-      column(width = 6,
-             h4("Points near click"),
-             verbatimTextOutput("click_info")
-        ),
-      column(width = 6,
-             h4("Brushed points"),
-             verbatimTextOutput("brush_info")
-        )
+      plotlyOutput('plot2', width="80%", height = "900px")
+      )
     )
+    
   )
 
 
@@ -65,8 +79,15 @@ ui = fluidPage(
 server <- function(input, output, session) {
   
   # Combine the selected variables into a new data frame
+  selectedData2 <- reactive({
+    eth <- input$ethnicclass
+    if(is.null(eth)) eth <- ethnicspecific  
+    return(PCAtestdata %>% select( matches(input$xcol), matches(input$ycol), PCAETHSPECIFIC) %>% filter(PCAETHSPECIFIC %in% eth))
+    
+    #return(PCAtestdata[, c(input$xcol, input$ycol, "PCAETHSPECIFIC")])
+  })
+  
   selectedData <- reactive({
-    #return(PCAtestdata %>% select(input$xcol, input$ycol, PCAETHSPECIFIC) %>% filter(PCAETHSPECIFIC %in% input$ethnicclass))
     return(PCAtestdata[, c(input$xcol, input$ycol, "PCAETHSPECIFIC")])
   })
   
@@ -93,10 +114,12 @@ server <- function(input, output, session) {
     #points(dat, pch = 3, cex = 1, lwd = 4)
     })
   
-  #output$plot1 <- renderPlot({
-  #  ggplot(mtcars2, aes(wt, mpg)) + geom_point()
-  #})
- 
+  output$plot2 <- renderPlotly({
+    dat <- selectedData2()
+    ggplotly(dat %>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol) %>%  
+      ggplot(., aes(x = xcol, y = ycol, colour = PCAETHSPECIFIC) )+ geom_point() + xlab(input$xcol) + ylab(input$ycol) + ylim(c(min(PCAtestdata[, input$ycol]), max(PCAtestdata[, input$ycol]) )) + xlim(c(min(PCAtestdata[, input$xcol]), max(PCAtestdata[, input$xcol]) )))
+    
+  })
   output$click_info <- renderPrint({
     nearPoints(PCAtestdata[,c("SUBJECT",input$xcol,input$ycol,"PCAETHBROAD","PCAETHSPECIFIC")], input$plot1_click, xvar=input$xcol, yvar=input$ycol, addDist = TRUE)
   })
@@ -104,6 +127,13 @@ server <- function(input, output, session) {
   output$brush_info <- renderPrint({
     brushedPoints(PCAtestdata[,c("SUBJECT",input$xcol,input$ycol,"PCAETHBROAD","PCAETHSPECIFIC")], input$plot1_brush, xvar=input$xcol, yvar=input$ycol)
   })
+  
+  output$plot2_hover_info <- renderPrint({
+    dat <- PCAtestdata %>% select(SUBJECT, matches(input$xcol), matches(input$ycol), PCAETHBROAD, PCAETHSPECIFIC)
+    nearPoints(df = dat, coordinfo = input$plot2_hover, xvar = input$xcol, yvar = input$ycol ) 
+  })
+    
+  
 }
   
   
