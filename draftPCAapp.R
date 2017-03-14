@@ -21,6 +21,7 @@ ethnicspecific <- c("African", "East Asian", "Southeast Asian", "South Asian", "
 ##################################
 # Define UI for application that draws a histogram
 ui = fluidPage(
+
   theme = shinytheme("spacelab"),
   headerPanel('PCA clustering'),
   fluidRow(
@@ -35,6 +36,7 @@ ui = fluidPage(
            
            tableOutput("subjectdata")
     ), 
+
     
     column(width = 8,
            plotOutput('plot1', width = "80%", height = "900px",
@@ -165,7 +167,10 @@ server <- function(input, output, session) {
     brushedPoints(PCAtestdata[,c("SUBJECT",input$xcol,input$ycol, "ETH_DESCRIP","PCAETHBROAD","PCAETHSPECIFIC")], input$plot1_brush, xvar=input$xcol, yvar=input$ycol)
   })
   
-  output$brush_info <- renderDataTable({ plot1brushselected()})
+  output$brush_info <- renderDataTable({ plot1brushselected()},
+   options = list(lengthMenu = list(c(10, 25, 50, -1), c('10','25','50','All')), pageLength = 10)
+   #options = list(scrollY = 200px, scrollCollapse = TRUE, paging = FALSE) #for vertical scrolling
+     )
   
   
   plot1brushselected2<- reactive({
@@ -189,8 +194,8 @@ server <- function(input, output, session) {
   })
   
   output$brush_info2 <- renderDataTable({
-    brushedPoints(PCAtestdata[,c("SUBJECT",input$xcol2,input$ycol2,"PCAETHBROAD","PCAETHSPECIFIC")], input$plot2_brush, xvar=input$xcol2, yvar=input$ycol2)
-  }) 
+    brushedPoints(PCAtestdata[,c("SUBJECT",input$xcol2,input$ycol2,"PCAETHBROAD","PCAETHSPECIFIC")], input$plot2_brush, xvar=input$xcol2, yvar=input$ycol2) 
+      }) 
   
   
   
