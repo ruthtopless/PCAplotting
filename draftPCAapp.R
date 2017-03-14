@@ -128,6 +128,10 @@ server <- function(input, output, session) {
              filter(PCAETHSPECIFIC %in% eth))
   })
   
+  highlight_sub <- reactive({ 
+    subj <-input$highlight_subjects
+    return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, which(input$xcol == names(.)), which(input$ycol == names(.)), PCAETHSPECIFIC) %>% filter(SUBJECT %in% subj))
+  })
   
   output$subjectdata <- renderTable({ highlight_sub()})
   
