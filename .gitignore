@@ -3,5 +3,5 @@
 .RData
 .Ruserdata
 *.Rproj
-PCAtestdata.txt
+PCAtestdata*.txt
 
