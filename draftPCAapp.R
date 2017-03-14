@@ -13,9 +13,9 @@ library(car) #dataEllipse
 library("ggrepel") # label points
 
 
-PCAtestdata <- read.delim("PCAtestdata2.txt", stringsAsFactors = F)
+PCAtestdata <- read.delim("PCAtestdata.txt", stringsAsFactors = F)
 PCAlist <-c("PCA1", "PCA2", "PCA3", "PCA4", "PCA5", "PCA6", "PCA7", "PCA8", "PCA9", "PCA10")
-ethnicspecific <- c("African", "East Asian", "Southeast Asian", "South Asian", "European", "Hispanic", "Melanesian", "East Polynesian",  "West Polynesian", "Niuean", "Pukapukan", "Polynesian", "Unspecified")
+ethnicspecific <- c("African", "East Asian", "Southeast Asian", "East or Southeast Asian", "South Asian", "European", "Hispanic", "Melanesian", "East Polynesian",  "West Polynesian", "Niuean", "Pukapukan", "Polynesian", "Unspecified")
 
 
 ##################################
@@ -107,19 +107,20 @@ server <- function(input, output, session) {
   }
   
   # define the colour scale to be used for plotting
-  eth_col_scale <- scale_colour_manual(values=c("African" = "#999999",
-                                                "East Asian"="#E41A1C",
-                                                "Southeast Asian"="#377EB8",
-                                                "South Asian"="#4DAF4A",
-                                                "European" = "#984EA3",
-                                                "Hispanic"= "#FF7F00",
-                                                "Melanesian"="#FFFF33",
-                                                "East Polynesian"="#A65628",
-                                                "West Polynesian"="#F781BF",
-                                                "Niuean"="#015249",
-                                                "Pukapukan"="#76323F",
-                                                "Polynesian"="#000080",
-                                                "Unspecified"="#49274A"))
+  eth_col_scale <- scale_colour_manual(values=c("African" = "#F8766D",
+                                                "East Asian"="#619CFF",
+                                                "Southeast Asian"="#00B0F6",
+                                                "East or Southeast Asian" = "#1565C0",
+                                                "South Asian"="#E58700",
+                                                "European" = "#00BA38",
+                                                "Hispanic"= "#009966",
+                                                "Melanesian"="#6C2DC7",
+                                                "East Polynesian"="#E9B000",
+                                                "West Polynesian"="#B983FF",
+                                                "Niuean"="#FF67A4",
+                                                "Pukapukan"="#E76BF3",
+                                                "Polynesian"="#00C0AF",
+                                                "Unspecified"="#999999"))
   
   # Combine the selected variables into a new data frame
   selectedData <- reactive({
