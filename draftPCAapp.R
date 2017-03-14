@@ -128,25 +128,24 @@ server <- function(input, output, session) {
              filter(PCAETHSPECIFIC %in% eth))
   })
   
-  highlight_sub <- reactive({ 
-    subj <-input$highlight_subjects
-    return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, which(input$xcol == names(.)), which(input$ycol == names(.)), PCAETHSPECIFIC) %>% filter(SUBJECT %in% subj))
-  })
   
   output$subjectdata <- renderTable({ highlight_sub()})
   
   output$plot1 <- renderPlot({
-    hl<-highlight_sub() 
-    dat <- selectedData()
-    dat %>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol)  %>% 
+    dat <- selectedData()%>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol)
+    highlight <- dat %>% filter(SUBJECT %in% input$highlight_subjects)
+    dat   %>% 
       ggplot(., aes(x = xcol, y = ycol , colour = PCAETHSPECIFIC )) + 
       geom_point() + 
       eth_col_scale+ # the colour scale defined further up
-      xlab(input$xcol) + 
+      xlab(input$xcol) +
       ylab(input$ycol) + 
       ylim(c(min(PCAtestdata[, input$ycol]), max(PCAtestdata[, input$ycol]) )) + 
       xlim(c(min(PCAtestdata[, input$xcol]), max(PCAtestdata[, input$xcol]) )) +
-      theme(legend.position='bottom')
+      theme(legend.position='bottom') + 
+      geom_point(data = highlight, shape = 2, colour = 'red', fill = 'red', size =10) + 
+      geom_text_repel(data = highlight,aes(x = xcol, y = ycol,  label = SUBJECT) )
+      
     
     #geom_point(data = hl, aes(x = hl[, input$xcol], y = hl[, input$ycol]),colour="black", shape=18, size = 3)
     #geom_text_repel(hl, aes(label=input$highlight_subjects), size = 3) # ?? or label=SUBJECT
