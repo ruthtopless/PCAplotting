@@ -13,7 +13,7 @@ library(car) #dataEllipse
 library("ggrepel") # label points
 
 
-PCAtestdata <- read.delim("PCAtestdata.txt", stringsAsFactors = F)
+PCAtestdata <- read.delim("PCAtestdata2.txt", stringsAsFactors = F)
 PCAlist <-c("PCA1", "PCA2", "PCA3", "PCA4", "PCA5", "PCA6", "PCA7", "PCA8", "PCA9", "PCA10")
 ethnicspecific <- c("African", "East Asian", "Southeast Asian", "South Asian", "European", "Hispanic", "Melanesian", "East Polynesian",  "West Polynesian", "Niuean", "Pukapukan", "Polynesian", "Unspecified")
 
@@ -84,16 +84,53 @@ ui = fluidPage(
 ####################################################################################################
 server <- function(input, output, session) {
   
+  #specify the colours to plot each ethnicity as
+  colour_eth <- function(x) {
+    unlist(lapply(x, function(x) {switch(x,
+                                  African = "#999999",
+                                  `East Asian`="#E41A1C",
+                                  `Southeast Asian`="#377EB8",
+                                  `South Asian`="#4DAF4A",
+                                  European = "#984EA3",
+                                  Hispanic= "#FF7F00",
+                                  Melanesian="#FFFF33",
+                                  `East Polynesian`="#A65628",
+                                  `West Polynesian`="#F781BF",
+                                  Niuean="#015249",
+                                  Pukapukan="#76323F",
+                                  Polynesian="#000080",
+                                  Unspecified="#49274A"
+                                  
+                                  )
+      }))
+  }
+  
+  eth_col_scale <- scale_colour_manual(values=c("African" = "#999999",
+                               "East Asian"="#E41A1C",
+                               "Southeast Asian"="#377EB8",
+                               "South Asian"="#4DAF4A",
+                               "European" = "#984EA3",
+                               "Hispanic"= "#FF7F00",
+                               "Melanesian"="#FFFF33",
+                               "East Polynesian"="#A65628",
+                               "West Polynesian"="#F781BF",
+                               "Niuean"="#015249",
+                               "Pukapukan"="#76323F",
+                               "Polynesian"="#000080",
+                               "Unspecified"="#49274A"))
+  
   # Combine the selected variables into a new data frame
   selectedData <- reactive({
     eth <- input$ethnicclass
     if(is.null(eth)) eth <- ethnicspecific  
-    return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, matches(input$xcol), matches(input$ycol), PCAETHSPECIFIC, SPECCOLOUR) %>% filter(PCAETHSPECIFIC %in% eth))
+    return(PCAtestdata %>% 
+             select(SUBJECT, ETH_DESCRIP, which(input$xcol == names(.)), which(input$ycol == names(.)), PCAETHSPECIFIC, SPECCOLOUR) %>% 
+             filter(PCAETHSPECIFIC %in% eth))
   })
   
  highlight_sub <- reactive({ 
    subj <-input$highlight_subjects
-   return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, matches(input$xcol), matches(input$ycol), PCAETHSPECIFIC) %>% filter(SUBJECT %in% subj))
+   return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, which(input$xcol == names(.)), which(input$ycol == names(.)), PCAETHSPECIFIC) %>% filter(SUBJECT %in% subj))
        })
   
  output$subjectdata <- renderTable({ highlight_sub()})
@@ -101,11 +138,10 @@ server <- function(input, output, session) {
   output$plot1 <- renderPlot({
     hl<-highlight_sub() 
     dat <- selectedData()
-    dat %>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol) %>%  
-               ggplot(., aes(x = xcol, y = ycol )) + 
+    dat %>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol) %>% mutate(cols = colour_eth(PCAETHSPECIFIC))  %>% 
+               ggplot(., aes(x = xcol, y = ycol , colour = PCAETHSPECIFIC )) + 
                geom_point() + 
-               #scale_colour_manual(values=setNames(SPECCOLOUR, PCAETHSPECIFIC))+
-              scale_colour_identity("something", breaks=dat$SPECCOLOUR, labels=dat$PCAETHSPECIFIC, guide="legend")+ #currently not working
+               eth_col_scale+
                xlab(input$xcol) + 
                ylab(input$ycol) + 
                ylim(c(min(PCAtestdata[, input$ycol]), max(PCAtestdata[, input$ycol]) )) + 
@@ -139,6 +175,7 @@ server <- function(input, output, session) {
              geom_point() + 
              xlab(input$xcol2) + 
              ylab(input$ycol2) + 
+              eth_col_scale +              
              ylim(c(min(PCAtestdata[, input$ycol2]), max(PCAtestdata[, input$ycol2]) )) + 
              xlim(c(min(PCAtestdata[, input$xcol2]), max(PCAtestdata[, input$xcol2]) ))
       })
