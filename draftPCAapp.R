@@ -84,7 +84,7 @@ ui = fluidPage(
 ####################################################################################################
 server <- function(input, output, session) {
   
-  #specify the colours to plot each ethnicity as
+  #function to assign plotting colours to ethinicities
   colour_eth <- function(x) {
     unlist(lapply(x, function(x) {switch(x,
                                   African = "#999999",
@@ -100,11 +100,11 @@ server <- function(input, output, session) {
                                   Pukapukan="#76323F",
                                   Polynesian="#000080",
                                   Unspecified="#49274A"
-                                  
                                   )
       }))
   }
   
+  # define the colour scale to be used for plotting
   eth_col_scale <- scale_colour_manual(values=c("African" = "#999999",
                                "East Asian"="#E41A1C",
                                "Southeast Asian"="#377EB8",
@@ -145,7 +145,8 @@ server <- function(input, output, session) {
                xlab(input$xcol) + 
                ylab(input$ycol) + 
                ylim(c(min(PCAtestdata[, input$ycol]), max(PCAtestdata[, input$ycol]) )) + 
-               xlim(c(min(PCAtestdata[, input$xcol]), max(PCAtestdata[, input$xcol]) )) 
+               xlim(c(min(PCAtestdata[, input$xcol]), max(PCAtestdata[, input$xcol]) )) +
+                theme(legend.position='bottom')
     
           #geom_point(data = hl, aes(x = hl[, input$xcol], y = hl[, input$ycol]),colour="black", shape=18, size = 3)
           #geom_text_repel(hl, aes(label=input$highlight_subjects), size = 3) # ?? or label=SUBJECT
