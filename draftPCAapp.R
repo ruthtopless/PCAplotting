@@ -120,7 +120,9 @@ server <- function(input, output, session) {
                                                 "Niuean"="#FF67A4",
                                                 "Pukapukan"="#E76BF3",
                                                 "Polynesian"="#00C0AF",
-                                                "Unspecified"="#999999"))
+                                                "Unspecified"="#999999"),
+                                       name="Ethnicities"
+  )
   
   # Combine the selected variables into a new data frame
   selectedData <- reactive({
@@ -138,24 +140,24 @@ server <- function(input, output, session) {
   
   output$subjectdata <- renderTable({ highlight_sub()})
   
+  
   output$plot1 <- renderPlot({
     dat <- selectedData()%>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol)
     highlight <- dat %>% filter(SUBJECT %in% input$highlight_subjects)
     dat   %>% 
-      ggplot(., aes(x = xcol, y = ycol , colour = PCAETHSPECIFIC )) + 
+      ggplot(., aes(x = xcol, y = ycol, colour = PCAETHSPECIFIC)) + 
       geom_point() + 
       eth_col_scale+ # the colour scale defined further up
       xlab(input$xcol) +
       ylab(input$ycol) + 
       ylim(c(min(PCAtestdata[, input$ycol]), max(PCAtestdata[, input$ycol]) )) + 
       xlim(c(min(PCAtestdata[, input$xcol]), max(PCAtestdata[, input$xcol]) )) +
-      theme(legend.position='bottom') + 
-      geom_point(data = highlight, shape = 2, colour = 'red', fill = 'red', size =10) + 
-      geom_text_repel(data = highlight,aes(x = xcol, y = ycol,  label = SUBJECT) )
-      
+      theme(legend.position='right',
+            legend.text = element_text(size = rel(1.5)),
+            legend.title = element_text(size = rel(2.0)))+
+      geom_point(data = highlight, shape = 18, colour = 'black', size = 5) + 
+      geom_text_repel(data = highlight,aes(x = xcol, y = ycol,  label = SUBJECT), colour="black",fontface = 'bold', nudge_x = 0.002, nudge_y = 0.002 )
     
-    #geom_point(data = hl, aes(x = hl[, input$xcol], y = hl[, input$ycol]),colour="black", shape=18, size = 3)
-    #geom_text_repel(hl, aes(label=input$highlight_subjects), size = 3) # ?? or label=SUBJECT
   })
   
   
