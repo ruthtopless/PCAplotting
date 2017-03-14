@@ -138,10 +138,10 @@ server <- function(input, output, session) {
   output$plot1 <- renderPlot({
     hl<-highlight_sub() 
     dat <- selectedData()
-    dat %>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol) %>% mutate(cols = colour_eth(PCAETHSPECIFIC))  %>% 
+    dat %>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol)  %>% 
                ggplot(., aes(x = xcol, y = ycol , colour = PCAETHSPECIFIC )) + 
                geom_point() + 
-               eth_col_scale+
+               eth_col_scale+ # the colour scale defined further up
                xlab(input$xcol) + 
                ylab(input$ycol) + 
                ylim(c(min(PCAtestdata[, input$ycol]), max(PCAtestdata[, input$ycol]) )) + 
@@ -176,7 +176,7 @@ server <- function(input, output, session) {
              geom_point() + 
              xlab(input$xcol2) + 
              ylab(input$ycol2) + 
-              eth_col_scale +              
+             eth_col_scale +              
              ylim(c(min(PCAtestdata[, input$ycol2]), max(PCAtestdata[, input$ycol2]) )) + 
              xlim(c(min(PCAtestdata[, input$xcol2]), max(PCAtestdata[, input$xcol2]) ))
       })
