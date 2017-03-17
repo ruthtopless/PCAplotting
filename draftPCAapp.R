@@ -31,7 +31,7 @@ ui = fluidPage(
            selectInput('ethnicclass', 'Choose ethnic groups to include', choices = ethnicspecific, multiple = TRUE ),
            
            hr(),
-           textInput("highlight_subjects", "Type in subject ID to highlight on plot"),
+           textInput("highlight_subjects", "Type in subject IDs to highlight on plot (comma separated)"),
            h4("Highlighted subject data"),
            tableOutput("subjectdata"),
            
@@ -123,16 +123,22 @@ server <- function(input, output, session) {
              filter(PCAETHSPECIFIC %in% eth))
   })
   
+
   highlight_sub <- reactive({ 
-    subj <-input$highlight_subjects
-    return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, which(input$xcol == names(.)), which(input$ycol == names(.)), PCAETHSPECIFIC) %>% filter(SUBJECT %in% subj))
+    subj <-gsub(pattern = " ", replacement = "", input$highlight_subjects)
+    subjectlist <-as.data.frame(strsplit(subj, ","))
+    colnames(subjectlist)[1]<-"SUBJECT"
+    return(PCAtestdata %>% select(SUBJECT, ETH_DESCRIP, which(input$xcol == names(.)), which(input$ycol == names(.)), PCAETHSPECIFIC) %>% filter(SUBJECT %in% subjectlist$SUBJECT))
   })
   
   output$subjectdata <- renderTable({ highlight_sub()}, bordered = TRUE)
   
   plotInput <- reactive({
     dat <- selectedData()%>% dplyr::rename_(xcol = input$xcol, ycol = input$ycol)
-    highlight <- dat %>% filter(SUBJECT %in% input$highlight_subjects)
+    subj <-gsub(pattern = " ", replacement = "", input$highlight_subjects)
+    subjectlist <-as.data.frame(strsplit(subj, ","))
+    colnames(subjectlist)[1]<-"SUBJECT"
+    highlight <- dat %>% filter(SUBJECT %in% subjectlist$SUBJECT)
     dat   %>% 
       ggplot(., aes(x = xcol, y = ycol, colour = PCAETHSPECIFIC)) + 
       geom_point() + 
@@ -171,7 +177,7 @@ server <- function(input, output, session) {
   
   output$brush_info <- renderDataTable({ plot1brushselected()},
                                        #options = list(lengthMenu = list(c(10, 25, 50, -1), c('10','25','50','All')), pageLength = 10, autoWidth=FALSE)
-                                       options = list(scrollY = "300px", scrollCollapse = TRUE, paging = FALSE, searching=FALSE) #for vertical scrolling
+                                       options = list(scrollY = "300px", scrollCollapse = TRUE, paging = FALSE, searching=TRUE) #for vertical scrolling
   )
   
   
@@ -183,7 +189,10 @@ server <- function(input, output, session) {
   
   plotInput2 <- reactive({
     dat3 <- plot1brushselected2()%>% dplyr::rename_(xcol = input$xcol2, ycol = input$ycol2)
-    highlight <- dat3 %>% filter(SUBJECT %in% input$highlight_subjects)
+    subj <-gsub(pattern = " ", replacement = "", input$highlight_subjects)
+    subjectlist <-as.data.frame(strsplit(subj, ","))
+    colnames(subjectlist)[1]<-"SUBJECT"
+    highlight <- dat3 %>% filter(SUBJECT %in% subjectlist$SUBJECT)
     dat3 %>%
       ggplot(., aes(x = xcol, y = ycol, colour = PCAETHSPECIFIC) ) +
       geom_point() +
