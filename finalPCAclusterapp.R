@@ -13,7 +13,7 @@ library(car) #dataEllipse
 library("ggrepel") # label points
 
 
-PCAtestdata <- read.delim("PCAtestdata.txt", stringsAsFactors = F)
+PCAtestdata <- read.delim("~/PCAplotting/CoreExomePCAdata.txt", stringsAsFactors = F)
 PCAlist <-c("PCA1", "PCA2", "PCA3", "PCA4", "PCA5", "PCA6", "PCA7", "PCA8", "PCA9", "PCA10")
 ethnicspecific <- c("African", "East Asian", "Southeast Asian", "East or Southeast Asian", "South Asian", "European", "Hispanic", "Melanesian", "East Polynesian",  "West Polynesian", "Niuean", "Pukapukan", "Polynesian", "Unspecified")
 
@@ -85,7 +85,9 @@ ui = fluidPage(
   fluidRow(
     column(width = 12, 
            h4("Brushed points from plot2"),
-           dataTableOutput("brush_info2")
+           dataTableOutput("brush_info2"),
+           textInput("filenamebrushpoints2", "File name for download of data from Plot2 Brushed points", placeholder = "Plot2 Brushed points"),
+           downloadButton('downloadDatabrushpoints2', 'Download Data from Plot2 Brushed points')
     )
   )
 )
@@ -235,6 +237,11 @@ server <- function(input, output, session) {
   output$brush_info2 <- renderDataTable({ plot2brushselected() },
                                         options = list(lengthMenu = list(c(10, 25, 50, -1), c('10','25','50','All')), pageLength = 10, autoWidth=FALSE)
   )
+  
+  output$downloadDatabrushpoints2 <- downloadHandler(
+    filename = function() {paste(input$filenamebrushpoints2,input$xcol2,input$ycol2, '.csv', sep='')},
+    content = function(file) {write.csv(plot2brushselected(), file)})
+  
   
 } #end of server
 
